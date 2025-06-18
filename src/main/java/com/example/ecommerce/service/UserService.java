@@ -1,3 +1,4 @@
+// src/main/java/com/example/ecommerce/service/UserService.java
 package com.example.ecommerce.service;
 
 import java.time.LocalDateTime;
@@ -6,11 +7,11 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.ecommerce.entity.User;
-import com.example.ecommerce.payload.LoginResponse;
 import com.example.ecommerce.repository.UserRepository;
 
 @Service
@@ -18,39 +19,41 @@ public class UserService {
 
 	@Autowired
 	private UserRepository userRepository;
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
 	public User createUser(User user) {
+		// generate custom userId if needed
 		if (user.getUserId() == null || user.getUserId().isEmpty()) {
 			user.setUserId(generateCustomUserId(user.getUsername()));
 		}
 
+		// hash the password
+		user.setPassword(passwordEncoder.encode(user.getPassword()));
+		user.setCreatedAt(LocalDateTime.now());
+		user.setUpdatedAt(LocalDateTime.now());
+
 		try {
 			return userRepository.save(user);
 		} catch (DataIntegrityViolationException e) {
-			// This will be caught by your GlobalExceptionHandler
-			throw e;
+			throw e; // handled by GlobalExceptionHandler
 		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create user");
 		}
 	}
 
-	private String generateCustomUserId(String username) {
-		String clean = username.replaceAll("[^a-zA-Z]", "").toLowerCase();
-		String shortName = clean.length() > 6 ? clean.substring(0, 6) : clean;
-		String timestamp = java.time.LocalDateTime.now()
-				.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-		return shortName + timestamp;
+	public User authenticate(String loginKey, String rawPassword) {
+		User user = userRepository.findByUsernameOrEmailOrMobileNo(loginKey, loginKey, loginKey)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid credentials"));
+
+		if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid credentials");
+		}
+		return user;
 	}
 
 	public List<User> getAllUsers() {
 		return userRepository.findAll();
-	}
-
-	public LoginResponse loginUser(String loginKey, String password) {
-		User user = userRepository.findByUsernameOrEmailOrMobileNoAndPassword(loginKey, loginKey, loginKey, password)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid credentials"));
-
-		return new LoginResponse(user.getUserId(), user.getUsername(), user.isIsActive(), user.isIsAdmin());
 	}
 
 	public User getUserById(String userId) {
@@ -108,5 +111,12 @@ public class UserService {
 	public void deleteUser(String userId) {
 		User existing = getUserById(userId);
 		userRepository.delete(existing);
+	}
+
+	private String generateCustomUserId(String username) {
+		String clean = username.replaceAll("[^a-zA-Z]", "").toLowerCase();
+		String shortName = clean.length() > 6 ? clean.substring(0, 6) : clean;
+		String timestamp = LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+		return shortName + timestamp;
 	}
 }

@@ -14,9 +14,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
@@ -30,9 +36,10 @@ public class User {
 
 	@NotBlank
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-	private String password;
+	private String password; // only for incoming JSON
 
-	private String passwordHash;
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	private String passwordHash; // only returned in internals
 
 	private boolean IsActive = true;
 
@@ -41,7 +48,7 @@ public class User {
 	@Column(unique = true)
 	@NotBlank
 	private String mobileNo;
-	
+
 	@Column(unique = true)
 	@NotBlank
 	private String email;
@@ -56,4 +63,8 @@ public class User {
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 	@JsonManagedReference("user-order")
 	private List<Order> orders;
+
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+	@JsonManagedReference("user-cart")
+	private List<WishlistItem> wishlistItems;
 }

@@ -33,18 +33,6 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 
-//	@GetMapping
-//	public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
-//		List<User> list = userService.getAllUsers();
-//		return ResponseEntity.ok(new ApiResponse<>(true, "fetched all users", list));
-//	}
-	
-//	@PostMapping("/login")
-//	public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
-//		LoginResponse response = userService.loginUser(request.getUsername(), request.getPassword());
-//		return ResponseEntity.ok(new ApiResponse<>(true, "Login successful", response));
-//	}
-
 	@PostMapping("/signup")
 	public ResponseEntity<ApiResponse<User>> createUser(@Valid @RequestBody User user) {
 		User created = userService.createUser(user);

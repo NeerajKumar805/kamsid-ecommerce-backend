@@ -1,14 +1,15 @@
-// src/main/java/com/example/ecommerce/entity/Address.java
+// src/main/java/com/example/ecommerce/entity/Category.java
 package com.example.ecommerce.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import java.util.List;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -21,27 +22,17 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "user_address")
-public class Address {
+@Table(name = "categories")
+public class Category {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long addressId;
+	private Long categoryId;
 
 	@NotBlank
-	private String area;
+	private String name;
 
-	@NotBlank
-	private String city;
-
-	@NotBlank
-	private String state;
-
-	@NotBlank
-	private String pin;
-
-	@ManyToOne
-	@JoinColumn(name = "user_id")
-	@JsonBackReference("user-address")
-	private User user;
+	// Bi-directional bcz one category has many products
+	@OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+	private List<Product> products;
 }

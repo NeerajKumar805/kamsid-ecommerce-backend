@@ -1,5 +1,6 @@
-// src/main/java/com/example/ecommerce/entity/Address.java
 package com.example.ecommerce.entity;
+
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -10,38 +11,32 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Entity
+@Table(name = "wishlist_items", uniqueConstraints = @UniqueConstraint(columnNames = { "user_id", "product_id" }))
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "user_address")
-public class Address {
+public class WishlistItem {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long addressId;
+	private Long id;
 
-	@NotBlank
-	private String area;
-
-	@NotBlank
-	private String city;
-
-	@NotBlank
-	private String state;
-
-	@NotBlank
-	private String pin;
-
-	@ManyToOne
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "user_id")
-	@JsonBackReference("user-address")
+	@JsonBackReference("user-wishlist")
 	private User user;
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "product_id")
+	private Product product;
+
+	private LocalDateTime addedAt = LocalDateTime.now();
 }
